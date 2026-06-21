@@ -44,6 +44,7 @@
 #endif
 
 #include "display.hpp"
+#include "display_helper.h"
 #include <option/has_switched_fan_test.h>
 
 #if HAS_MINI_DISPLAY()
@@ -61,36 +62,43 @@
     #define SPLASHSCREEN_VERSION_Y     185
 
 static constexpr Color nozzl_splash_surface = Color::from_raw(0x0B0B0B);
-static constexpr Color nozzl_splash_card = Color::from_raw(0x151515);
 static constexpr Color nozzl_splash_text = COLOR_WHITE;
-static constexpr Color nozzl_splash_muted = Color::from_raw(0xA8A8A8);
+static constexpr Color nozzl_splash_metal = Color::from_raw(0xD8D8D8);
+static constexpr Color nozzl_splash_metal_shadow = Color::from_raw(0x777777);
 
 static void draw_nozzl_splash_identity() {
     display::fill_rect(Rect16(0, GuiDefaults::HeaderHeight, GuiDefaults::ScreenWidth, SPLASHSCREEN_PROGRESSBAR_Y - GuiDefaults::HeaderHeight - 8), nozzl_splash_surface);
 
-    constexpr Rect16 logo_rect(208, 39, 64, 64);
-    display::draw_rounded_rect(logo_rect, nozzl_splash_surface, COLOR_ORANGE, 14, MIC_ALL_CORNERS);
+    constexpr int16_t center_x = GuiDefaults::ScreenWidth / 2;
+    display::fill_rect(Rect16(center_x - 4, 32, 8, 18), COLOR_ORANGE);
+    display::draw_rounded_rect(Rect16(center_x - 34, 48, 68, 27), nozzl_splash_surface, nozzl_splash_metal, 7, MIC_ALL_CORNERS);
+    display::fill_rect(Rect16(center_x - 25, 56, 50, 9), nozzl_splash_metal_shadow);
+    display::fill_rect(Rect16(center_x - 31, 68, 62, 8), nozzl_splash_metal);
 
-    const Rect16 logo_inner(
-        logo_rect.Left() + 4,
-        logo_rect.Top() + 4,
-        logo_rect.Width() - 8,
-        logo_rect.Height() - 8);
-    display::draw_rounded_rect(logo_inner, COLOR_ORANGE, nozzl_splash_card, 10, MIC_ALL_CORNERS);
-
-    display::fill_rect(Rect16(logo_inner.Left() + 12, logo_inner.Top() + 11, 7, logo_inner.Height() - 22), COLOR_ORANGE);
-    display::fill_rect(Rect16(logo_inner.Right() - 19, logo_inner.Top() + 11, 7, logo_inner.Height() - 22), COLOR_ORANGE);
-    for (uint8_t i = 0; i < 5; ++i) {
-        display::draw_line(
-            point_ui16_t { uint16_t(logo_inner.Left() + 20 + i), uint16_t(logo_inner.Top() + 12) },
-            point_ui16_t { uint16_t(logo_inner.Right() - 20 + i), uint16_t(logo_inner.Bottom() - 13) },
-            COLOR_ORANGE);
+    for (uint8_t row = 0; row < 27; ++row) {
+        const uint8_t inset = row / 2;
+        const uint16_t width = 56 - 2 * inset;
+        display::fill_rect(Rect16(center_x - width / 2, 76 + row, width, 1), nozzl_splash_metal);
     }
+    display::fill_rect(Rect16(center_x - 7, 101, 14, 5), nozzl_splash_metal_shadow);
+    display::fill_rect(Rect16(center_x - 4, 106, 8, 6), nozzl_splash_metal);
 
-    display::draw_text(Rect16(0, 110, GuiDefaults::ScreenWidth, height(Font::big)),
-        string_view_utf8::MakeCPUFLASH("UNORIGINAL NOZZL"), Font::big, nozzl_splash_surface, nozzl_splash_text);
-    display::draw_text(Rect16(0, 135, GuiDefaults::ScreenWidth, height(Font::special)),
-        string_view_utf8::MakeCPUFLASH("custom MK4S firmware"), Font::special, nozzl_splash_surface, nozzl_splash_muted);
+    constexpr uint8_t filament_width = 4;
+    const auto filament_h = [](int16_t x, int16_t y, uint16_t width) {
+        display::fill_rect(Rect16(x, y, width, filament_width), COLOR_ORANGE);
+    };
+    const auto filament_v = [](int16_t x, int16_t y, uint16_t height) {
+        display::fill_rect(Rect16(x, y, filament_width, height), COLOR_ORANGE);
+    };
+    filament_h(center_x - 44, 130, 88);
+    filament_v(center_x + 40, 118, 16);
+    filament_h(center_x - 34, 118, 78);
+    filament_v(center_x - 34, 118, 10);
+    filament_h(center_x - 34, 124, 36);
+    filament_v(center_x - filament_width / 2, 110, 18);
+
+    render_text_align(Rect16(0, 140, GuiDefaults::ScreenWidth, height(Font::big)),
+        string_view_utf8::MakeCPUFLASH("UNORIGINAL PRUSA"), Font::big, nozzl_splash_surface, nozzl_splash_text, {}, Align_t::Center());
 }
 #endif
 
