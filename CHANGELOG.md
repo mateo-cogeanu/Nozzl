@@ -378,7 +378,7 @@ The launcher now uses a dedicated Python wrapper that provisions and attaches ev
 - `src/gui/footer/ifooter_item.cpp` — propagates the shared surface through footer items, icons, and text.
 - `src/guiapi/src/display_ex.cpp` — adds a subtle renderer-level text weight pass so existing fonts read slightly thicker without changing metrics or layout.
 - `src/gui/screen_splash.cpp` — changes the MK4/MK4S setup splash greeting from Original Prusa branding to UNORIGINAL NOZZL.
-- `src/gui/screen_splash.cpp` — adds a procedural Nozzl boot identity: centered nozzle graphic extruding orange filament and centered UNORIGINAL PRUSA title.
+- `src/gui/screen_splash.cpp` — adds a simplified Nozzl boot identity with a smaller white-outline nozzle, orange filament, and a more prominent centered UNORIGINAL PRUSA title.
 - `cmake/ProjectVersion.cmake` — changes local build version branding from `.LOCAL` to `.NOZZL`, including the short version shown in the header.
 - `src/gui/screen_home.cpp` — uses the bold normal font for large-display home menu labels for better readability.
 - `src/gui/dialogs/i_radio_button.cpp` — keeps shared confirmation buttons on the selected-only orange outline treatment.

@@ -68,7 +68,7 @@ static void draw_nozzl_splash_identity() {
     display::fill_rect(Rect16(0, GuiDefaults::HeaderHeight, GuiDefaults::ScreenWidth, SPLASHSCREEN_PROGRESSBAR_Y - GuiDefaults::HeaderHeight - 8), nozzl_splash_surface);
 
     constexpr int16_t center_x = GuiDefaults::ScreenWidth / 2;
-    constexpr int16_t top = 30;
+    constexpr int16_t top = 34;
     constexpr uint8_t line = 3;
 
     const auto white_h = [=](int16_t x, int16_t y, uint16_t width) {
@@ -83,22 +83,22 @@ static void draw_nozzl_splash_identity() {
         }
     };
 
-    white_h(center_x - 24, top, 48);
-    white_h(center_x - 24, top + 39, 48);
-    white_v(center_x - 24, top, 42);
-    white_v(center_x + 21, top, 42);
-    white_h(center_x - 24, top + 12, 48);
-    white_h(center_x - 24, top + 25, 48);
+    white_h(center_x - 19, top, 38);
+    white_h(center_x - 19, top + 31, 38);
+    white_v(center_x - 19, top, 34);
+    white_v(center_x + 16, top, 34);
+    white_h(center_x - 19, top + 10, 38);
+    white_h(center_x - 19, top + 20, 38);
 
-    white_h(center_x - 34, top + 52, 68);
-    white_line(point_ui16_t { uint16_t(center_x - 34), uint16_t(top + 54) }, point_ui16_t { uint16_t(center_x - 8), uint16_t(top + 91) });
-    white_line(point_ui16_t { uint16_t(center_x + 31), uint16_t(top + 54) }, point_ui16_t { uint16_t(center_x + 5), uint16_t(top + 91) });
-    white_h(center_x - 8, top + 91, 16);
+    white_h(center_x - 27, top + 42, 54);
+    white_line(point_ui16_t { uint16_t(center_x - 27), uint16_t(top + 44) }, point_ui16_t { uint16_t(center_x - 6), uint16_t(top + 73) });
+    white_line(point_ui16_t { uint16_t(center_x + 24), uint16_t(top + 44) }, point_ui16_t { uint16_t(center_x + 4), uint16_t(top + 73) });
+    white_h(center_x - 6, top + 73, 12);
 
-    display::fill_rect(Rect16(center_x - 1, top + 95, 3, 9), COLOR_ORANGE);
-    display::fill_rect(Rect16(center_x - 55, top + 104, 110, 3), COLOR_ORANGE);
+    display::fill_rect(Rect16(center_x - 1, top + 77, 3, 8), COLOR_ORANGE);
+    display::fill_rect(Rect16(center_x - 44, top + 85, 88, 3), COLOR_ORANGE);
 
-    render_text_align(Rect16(0, 140, GuiDefaults::ScreenWidth, height(Font::big)),
+    render_text_align(Rect16(0, 132, GuiDefaults::ScreenWidth, height(Font::big)),
         string_view_utf8::MakeCPUFLASH("UNORIGINAL PRUSA"), Font::big, nozzl_splash_surface, nozzl_splash_text, {}, Align_t::Center());
 }
 #endif
