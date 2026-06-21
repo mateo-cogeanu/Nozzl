@@ -108,7 +108,7 @@ constexpr Rect16 logoRect = Rect16(41, 31, 158, 40);
 constexpr size_t buttonsXSpacing = 54;
 constexpr size_t buttonIconSize = 96;
 constexpr size_t buttonTextWidth = 132;
-constexpr size_t buttonTextHeight = 20;
+constexpr size_t buttonTextHeight = 22;
 constexpr size_t buttonIconVerticalSpacing = 29;
 
 constexpr size_t buttonTopOffset = 47;
@@ -327,7 +327,11 @@ screen_home_data_t::screen_home_data_t()
             w_buttons[i].SetRect(buttonRect(col, row));
             w_buttons[i].SetRes(&icons[i]);
             w_labels[i].SetRect(buttonTextRect(col, row));
+#if HAS_LARGE_DISPLAY()
+            w_labels[i].set_font(Font::normal);
+#else
             w_labels[i].set_font(Font::small);
+#endif
             w_labels[i].SetAlignment(Align_t::Center());
             w_labels[i].SetPadding({ 0, 0, 0, 0 });
             w_labels[i].SetText(_(labels[i]));

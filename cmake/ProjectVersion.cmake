@@ -42,9 +42,9 @@ function(resolve_version_variables)
   # PROJECT_VERSION_SUFFIX
   if(PROJECT_VERSION_SUFFIX STREQUAL "<auto>")
     # TODO: set to +<sha>.dirty?.debug?
-    set(PROJECT_VERSION_SUFFIX "+${BUILD_NUMBER}.LOCAL")
+    set(PROJECT_VERSION_SUFFIX "+${BUILD_NUMBER}.NOZZL")
     set(PROJECT_VERSION_SUFFIX
-        "+${BUILD_NUMBER}.LOCAL"
+        "+${BUILD_NUMBER}.NOZZL"
         PARENT_SCOPE
         )
   endif()
@@ -52,7 +52,7 @@ function(resolve_version_variables)
   # PROJECT_VERSION_SUFFIX_SHORT
   if(PROJECT_VERSION_SUFFIX_SHORT STREQUAL "<auto>")
     set(PROJECT_VERSION_SUFFIX_SHORT
-        "+${BUILD_NUMBER}"
+        "+${BUILD_NUMBER}.NOZZL"
         PARENT_SCOPE
         )
   endif()
