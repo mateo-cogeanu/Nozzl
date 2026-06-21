@@ -24,6 +24,7 @@
 #include "ScreenFactory.hpp"
 #include "gui_media_events.hpp"
 #include "DialogHandler.hpp"
+#include "display.hpp"
 #include "img_resources.hpp"
 #include "tasks.hpp"
 
@@ -71,7 +72,7 @@ bool screen_home_data_t::ever_been_opened = false;
 #endif
 #if HAS_LARGE_DISPLAY()
     #define GEN_ICON_NAMES(ICON) \
-        { img::ICON##_80x80, img::ICON##_80x80_focused, img::ICON##_80x80_disabled }
+        { img::home_##ICON##_96x96, img::home_##ICON##_96x96_focused, img::home_##ICON##_96x96_disabled }
 #endif
 
 static constexpr const WindowMultiIconButton::Pngs icons[] = {
@@ -92,8 +93,10 @@ constexpr size_t buttonFilamentIndex = 2;
 
 #if HAS_MINI_DISPLAY()
 constexpr size_t buttonsXSpacing = 15;
+constexpr size_t buttonIconSize = GuiDefaults::ButtonIconSize;
 constexpr size_t buttonTextWidth = 80;
 constexpr size_t buttonTextHeight = 13; // font_regular_7x13
+constexpr size_t buttonIconVerticalSpacing = GuiDefaults::ButtonIconVerticalSpacing;
 
 constexpr size_t buttonTopOffset = 88;
 constexpr size_t buttonTextTopOffset = 155;
@@ -102,33 +105,100 @@ constexpr Rect16 logoRect = Rect16(41, 31, 158, 40);
 #endif
 
 #if HAS_LARGE_DISPLAY()
-constexpr size_t buttonsXSpacing = 40;
-constexpr size_t buttonTextWidth = 99;
-constexpr size_t buttonTextHeight = 23;
+constexpr size_t buttonsXSpacing = 54;
+constexpr size_t buttonIconSize = 96;
+constexpr size_t buttonTextWidth = 132;
+constexpr size_t buttonTextHeight = 20;
+constexpr size_t buttonIconVerticalSpacing = 29;
 
-constexpr size_t buttonTopOffset = 53;
-constexpr size_t buttonTextTopOffset = buttonTopOffset + GuiDefaults::ButtonIconSize + 5;
+constexpr size_t buttonTopOffset = 47;
+constexpr size_t buttonTextTopOffset = 139;
+
+constexpr Color tileBorderColor = Color::from_raw(0x151515);
+constexpr Color tileSelectedBorderColor = COLOR_ORANGE;
+constexpr Color tileDisabledBorderColor = Color::from_raw(0x242424);
+constexpr Color tileSurfaceColor = Color::from_raw(0x151515);
+constexpr Color tileDisabledSurfaceColor = Color::from_raw(0x101010);
+constexpr Color tileLabelColor = Color::from_raw(0xD8D8D8);
+constexpr Color tileSelectedLabelColor = COLOR_WHITE;
+constexpr Color tileDisabledLabelColor = Color::from_raw(0x777777);
+
+constexpr size_t cardWidth = 142;
+constexpr size_t cardHeight = 121;
+constexpr size_t cardLeftOffset = 19;
+constexpr size_t cardTopOffset = 42;
+constexpr size_t cardXSpacing = 8;
+constexpr size_t cardYSpacing = 4;
+constexpr size_t cardBorderWidth = 3;
+constexpr uint8_t cardCornerRadius = 12;
 #endif
 
-constexpr size_t buttonTextSpacing = GuiDefaults::ButtonIconSize + buttonsXSpacing - buttonTextWidth;
-constexpr size_t buttonsLeftOffset = (GuiDefaults::ScreenWidth - 3 * GuiDefaults::ButtonIconSize - 2 * buttonsXSpacing) / 2;
+constexpr size_t buttonTextSpacing = buttonIconSize + buttonsXSpacing - buttonTextWidth;
+constexpr size_t buttonsLeftOffset = (GuiDefaults::ScreenWidth - 3 * buttonIconSize - 2 * buttonsXSpacing) / 2;
 constexpr size_t buttonsTextsLeftOffset = (GuiDefaults::ScreenWidth - 3 * buttonTextWidth - 2 * buttonTextSpacing) / 2;
 
 static constexpr Rect16 buttonRect(size_t col, size_t row) {
     return Rect16(
-        buttonsLeftOffset + (buttonsXSpacing + GuiDefaults::ButtonIconSize) * col,
-        buttonTopOffset + (GuiDefaults::ButtonIconVerticalSpacing + GuiDefaults::ButtonIconSize) * row,
-        GuiDefaults::ButtonIconSize,
-        GuiDefaults::ButtonIconSize);
+        buttonsLeftOffset + (buttonsXSpacing + buttonIconSize) * col,
+        buttonTopOffset + (buttonIconVerticalSpacing + buttonIconSize) * row,
+        buttonIconSize,
+        buttonIconSize);
 }
 
 static constexpr Rect16 buttonTextRect(size_t col, size_t row) {
     return Rect16(
-        buttonsTextsLeftOffset + (buttonsXSpacing + GuiDefaults::ButtonIconSize) * col,
-        buttonTextTopOffset + (GuiDefaults::ButtonIconVerticalSpacing + GuiDefaults::ButtonIconSize) * row,
+#if HAS_LARGE_DISPLAY()
+        cardLeftOffset + (cardWidth + cardXSpacing) * col + cardBorderWidth,
+#else
+        buttonsTextsLeftOffset + (buttonsXSpacing + buttonIconSize) * col,
+#endif
+        buttonTextTopOffset + (buttonIconVerticalSpacing + buttonIconSize) * row,
         buttonTextWidth,
         buttonTextHeight);
 }
+
+#if HAS_LARGE_DISPLAY()
+static constexpr Rect16 cardRect(size_t col, size_t row) {
+    return Rect16(
+        cardLeftOffset + (cardWidth + cardXSpacing) * col,
+        cardTopOffset + (cardHeight + cardYSpacing) * row,
+        cardWidth,
+        cardHeight);
+}
+
+#endif
+
+#if HAS_LARGE_DISPLAY()
+void HomeTileBackground::set_colors(Color border, Color surface) {
+    if (border_color == border && surface_color == surface) {
+        return;
+    }
+
+    border_color = border;
+    surface_color = surface;
+    Invalidate();
+}
+
+void HomeTileBackground::unconditionalDraw() {
+    const Rect16 rect = GetRect();
+    const Color parent_back_color = GetParent() ? GetParent()->GetBackColor() : surface_color;
+
+    if (border_color == surface_color) {
+        display::draw_rounded_rect(rect, parent_back_color, surface_color, cardCornerRadius, MIC_ALL_CORNERS);
+        return;
+    }
+
+    display::draw_rounded_rect(rect, parent_back_color, border_color, cardCornerRadius, MIC_ALL_CORNERS);
+
+    const Rect16 innerRect(
+        rect.Left() + cardBorderWidth,
+        rect.Top() + cardBorderWidth,
+        rect.Width() - 2 * cardBorderWidth,
+        rect.Height() - 2 * cardBorderWidth);
+    constexpr uint8_t innerRadius = cardCornerRadius > cardBorderWidth ? cardCornerRadius - cardBorderWidth : 1;
+    display::draw_rounded_rect(innerRect, border_color, surface_color, innerRadius, MIC_ALL_CORNERS);
+}
+#endif
 
 const char *labels[] = {
     N_("Print"),
@@ -196,6 +266,16 @@ screen_home_data_t::screen_home_data_t()
 #if HAS_MINI_DISPLAY()
     , logo(this, logoRect, &img::prusa_mini_logo_153x40)
 #endif
+#if HAS_LARGE_DISPLAY()
+    , w_cards {
+        { this, Rect16() },
+        { this, Rect16() },
+        { this, Rect16() },
+        { this, Rect16() },
+        { this, Rect16() },
+        { this, Rect16() }
+    }
+#endif
     , w_buttons {
         { this, Rect16(), nullptr, [](window_t&) { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
         { this, Rect16(), nullptr, [](window_t&) { marlin_client::gcode_printf("M1700 T-1"); } },
@@ -241,6 +321,9 @@ screen_home_data_t::screen_home_data_t()
     for (uint8_t row = 0; row < 2; row++) {
         for (uint8_t col = 0; col < 3; col++) {
             const size_t i = row * 3 + col;
+#if HAS_LARGE_DISPLAY()
+            w_cards[i].SetRect(cardRect(col, row));
+#endif
             w_buttons[i].SetRect(buttonRect(col, row));
             w_buttons[i].SetRes(&icons[i]);
             w_labels[i].SetRect(buttonTextRect(col, row));
@@ -258,6 +341,7 @@ screen_home_data_t::screen_home_data_t()
     } else {
         usbWasAlreadyInserted = true;
     }
+    refreshTileStyle();
     ever_been_opened = true;
 }
 
@@ -309,6 +393,25 @@ void screen_home_data_t::filamentBtnSetState() {
             w_buttons[buttonFilamentIndex].Enable();
             break;
         }
+    }
+#endif
+}
+
+void screen_home_data_t::refreshTileStyle() {
+#if HAS_LARGE_DISPLAY()
+    for (size_t i = 0; i < button_count; ++i) {
+        const bool selected = w_buttons[i].IsFocused() && w_buttons[i].IsEnabled();
+        const bool disabled = !w_buttons[i].IsEnabled() || w_buttons[i].IsShadowed();
+        const Color border = disabled ? tileDisabledBorderColor : selected ? tileSelectedBorderColor
+                                                                           : tileBorderColor;
+        const Color surface = disabled ? tileDisabledSurfaceColor : tileSurfaceColor;
+        const Color label = disabled ? tileDisabledLabelColor : selected ? tileSelectedLabelColor
+                                                                         : tileLabelColor;
+
+        w_cards[i].set_colors(border, surface);
+        w_buttons[i].SetBackColor(surface);
+        w_labels[i].SetBackColor(surface);
+        w_labels[i].SetTextColor(label);
     }
 #endif
 }
@@ -469,6 +572,7 @@ void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *
             break;
         }
         media_event = MediaState_t::unknown;
+        refreshTileStyle();
     }
 
     if (event == GUI_event_t::LOOP) {
@@ -515,6 +619,7 @@ void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *
 #endif
 
     screen_t::windowEvent(sender, event, param);
+    refreshTileStyle();
 
 #if HAS_NFC()
     // This is to handle the Preheat dialog, that is put above this screen
@@ -528,6 +633,7 @@ void screen_home_data_t::printBtnEna() {
     w_buttons[0].Enable(); // can be focused
     w_buttons[0].Invalidate();
     w_labels[0].SetText(_(labels[labelPrintId]));
+    refreshTileStyle();
 }
 
 void screen_home_data_t::printBtnDis() {
@@ -540,6 +646,7 @@ void screen_home_data_t::printBtnDis() {
     w_buttons[0].Disable(); // cant't be focused
     w_buttons[0].Invalidate();
     w_labels[0].SetText(_(labels[labelNoUSBId]));
+    refreshTileStyle();
 }
 
 void screen_home_data_t::InitState(screen_init_variant var) {
@@ -553,6 +660,7 @@ void screen_home_data_t::InitState(screen_init_variant var) {
     }
 
     w_buttons[pos].SetFocus();
+    refreshTileStyle();
 }
 
 screen_init_variant screen_home_data_t::GetCurrentState() const {

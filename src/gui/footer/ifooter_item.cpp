@@ -12,6 +12,7 @@ IFooterItem::IFooterItem(window_t *parent, Rect16::W_t width)
     : window_frame_t(parent, Rect16(0, 0 /* item_top*/, width, item_h))
     , update_period(500)
     , last_updated(gui::GetTick()) {
+    SetBackColor(parent ? parent->GetBackColor() : GuiDefaults::ColorBack);
 }
 
 IFooterItem::TickResult IFooterItem::tick() {
@@ -65,6 +66,8 @@ IFooterIconText::IFooterIconText(window_t *parent, const img::Resource *icon, Re
     : IFooterItem(parent, width)
     , icon(this, icon)
     , text(this, Rect16::Left_t(icon ? icon->w + GuiDefaults::FooterIconTextSpace : 0)) {
+    this->icon.SetBackColor(GetBackColor());
+    text.SetBackColor(GetBackColor());
 }
 
 Rect16::Width_t IFooterIconText::MeasureTextWidth(const string_view_utf8 &text) {

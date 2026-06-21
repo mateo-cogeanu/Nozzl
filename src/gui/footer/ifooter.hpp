@@ -18,4 +18,7 @@ public:
     static bool SetSlot(FooterLine &line, size_t slot_id, footer::Item item);
     static bool SetSlotInit(size_t slot_id, footer::Item item);
     static footer::Item GetSlotInit(size_t slot_id);
+
+protected:
+    virtual void unconditionalDraw() override;
 };

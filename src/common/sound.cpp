@@ -76,12 +76,12 @@ struct AllSoundSettings {
 
 static constexpr AllSoundSettings all_sound_settings = {
     .button_echo = {
-        .once = { 1, 1, 100 },
-        .loud = { 1, 1, 100 },
+        .once = { 1, 1, 28 },
+        .loud = { 1, 1, 28 },
         .silent = SILENCE,
-        .assist = { 1, 1, 100 },
-        .frequency = 900.F,
-        .volume = Sound::volumeInit,
+        .assist = { 1, 1, 28 },
+        .frequency = 700.F,
+        .volume = 0.18F,
         .forced = false,
     },
     .standard_prompt = {

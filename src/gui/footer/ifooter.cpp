@@ -7,11 +7,24 @@
 #include "ifooter.hpp"
 #include "ScreenHandler.hpp"
 #include "footer_eeprom.hpp"
+#include "display.hpp"
 #include <config_store/store_instance.hpp>
+
+namespace {
+constexpr Color footer_surface_color = Color::from_raw(0x151515);
+constexpr Color footer_divider_color = Color::from_raw(0x2C2C2C);
+}
 
 IFooter::IFooter(window_t *parent)
     : window_frame_t(parent, GuiDefaults::RectFooter, positioning::absolute) {
+    SetBackColor(footer_surface_color);
     Disable();
+}
+
+void IFooter::unconditionalDraw() {
+    const Rect16 rect = GetRect();
+    display::fill_rect(rect, GetBackColor());
+    display::fill_rect(Rect16(rect.Left(), rect.Top(), rect.Width(), 1), footer_divider_color);
 }
 
 bool IFooter::SetSlot(FooterLine &line, size_t slot_id, footer::Item item) {

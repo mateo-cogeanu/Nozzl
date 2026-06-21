@@ -19,6 +19,20 @@
     #include <optional>
 #endif
 
+#if HAS_LARGE_DISPLAY()
+class HomeTileBackground final : public window_t {
+    Color border_color;
+    Color surface_color;
+
+public:
+    using window_t::window_t;
+    void set_colors(Color border, Color surface);
+
+protected:
+    virtual void unconditionalDraw() override;
+};
+#endif
+
 class screen_home_data_t : public screen_t {
 public:
     static constexpr size_t button_count = 6;
@@ -46,6 +60,9 @@ private:
 #if HAS_MINI_DISPLAY()
     window_icon_t logo;
 #endif
+#if HAS_LARGE_DISPLAY()
+    HomeTileBackground w_cards[button_count];
+#endif
     WindowMultiIconButton w_buttons[button_count];
     window_text_t w_labels[button_count];
 
@@ -69,6 +86,7 @@ private:
     void printBtnEna();
     void printBtnDis();
     void filamentBtnSetState();
+    void refreshTileStyle();
 
     void on_enter();
     void handle_crash_dump();

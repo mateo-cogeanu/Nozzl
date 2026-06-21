@@ -12,6 +12,7 @@
 
 FooterLine::FooterLine(window_t *parent, size_t line_no)
     : window_frame_t(parent, footer::line_rect(line_no), positioning::relative) {
+    SetBackColor(parent ? parent->GetBackColor() : GuiDefaults::ColorBack);
 }
 
 void FooterLine::windowEvent(window_t *sender, GUI_event_t event, void *param) {

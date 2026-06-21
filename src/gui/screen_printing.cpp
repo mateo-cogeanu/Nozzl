@@ -437,6 +437,10 @@ void screen_printing_data_t::start_showing_end_result() {
         button.Hide();
     }
 
+    for (auto &card : button_cards) {
+        card.Hide();
+    }
+
     for (auto &label : labels) {
         label.Hide();
     }
@@ -457,6 +461,10 @@ void screen_printing_data_t::start_showing_end_result() {
 
 void screen_printing_data_t::stop_showing_end_result() {
     // show previous
+    for (auto &card : button_cards) {
+        card.Show();
+    }
+
     for (auto &button : buttons) {
         button.Show();
     }

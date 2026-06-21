@@ -248,11 +248,15 @@ void store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, unichar c, 
     for (uint16_t j = 0; j < char_h; j++) {
         pc = pch + j * bpr;
         buffer_offset = j * char_cnt * char_w * pixel_size + curr_char_idx * char_w * pixel_size;
+        uint8_t previous_alpha = 0;
         for (uint16_t i = 0; i < char_w; i++) {
             if ((i % ppb) == 0) {
                 crd = *(pc++);
             }
-            buff.OffsetInsert(crd >> (8 - bpp), buffer_offset + i * pixel_size);
+            const uint8_t alpha = crd >> (8 - bpp);
+            const uint8_t weighted_left_alpha = previous_alpha / 2;
+            buff.OffsetInsert(std::max(alpha, weighted_left_alpha), buffer_offset + i * pixel_size);
+            previous_alpha = alpha;
             crd <<= bpp;
         }
     }

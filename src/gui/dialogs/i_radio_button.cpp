@@ -214,7 +214,7 @@ void IRadioButton::draw_n_btns(size_t btn_count) {
                 GetBtnIndex() == i && IsEnabled(i) && !disabled_drawing_selected);
         }
     }
-    Color spaces_clr = (GetBackColor() == COLOR_ORANGE) ? COLOR_BLACK : COLOR_ORANGE;
+    const Color spaces_clr = GetParent() ? GetParent()->GetBackColor() : COLOR_BLACK;
     for (size_t i = 0; i < btn_count - 1; ++i) {
         display::fill_rect(layout.spaces[i], spaces_clr);
     }
@@ -262,14 +262,30 @@ void IRadioButton::EnableDrawingSelected() {
 }
 
 static void button_draw(Rect16 rc_btn, Color back_color, Color parent_color, const string_view_utf8 &text, bool is_selected) {
-    Color button_cl = is_selected ? back_color : COLOR_GRAY;
-    Color text_cl = is_selected ? COLOR_BLACK : COLOR_WHITE;
+    constexpr uint16_t selected_border_width = 3;
+    constexpr Color button_cl = Color::from_raw(0x151515);
+    const Color text_cl = COLOR_WHITE;
+    Rect16 text_rect = rc_btn;
     if (GuiDefaults::RadioButtonCornerRadius) {
-        display::draw_rounded_rect(rc_btn, parent_color, button_cl, GuiDefaults::RadioButtonCornerRadius, MIC_ALL_CORNERS);
-        rc_btn += Rect16::Left_t(GuiDefaults::RadioButtonCornerRadius);
-        rc_btn -= Rect16::Width_t(2 * GuiDefaults::RadioButtonCornerRadius);
+        const Color border_cl = is_selected ? back_color : button_cl;
+        display::draw_rounded_rect(rc_btn, parent_color, border_cl, GuiDefaults::RadioButtonCornerRadius, MIC_ALL_CORNERS);
+        if (is_selected) {
+            const Rect16 inner_rect(
+                rc_btn.Left() + selected_border_width,
+                rc_btn.Top() + selected_border_width,
+                rc_btn.Width() - 2 * selected_border_width,
+                rc_btn.Height() - 2 * selected_border_width);
+            display::draw_rounded_rect(inner_rect, border_cl, button_cl,
+                GuiDefaults::RadioButtonCornerRadius - selected_border_width, MIC_ALL_CORNERS);
+            text_rect = inner_rect;
+        }
+        const uint16_t text_side_padding = is_selected
+            ? GuiDefaults::RadioButtonCornerRadius - selected_border_width
+            : GuiDefaults::RadioButtonCornerRadius;
+        text_rect += Rect16::Left_t(text_side_padding);
+        text_rect -= Rect16::Width_t(2 * text_side_padding);
     }
-    render_text_align(rc_btn, text, ButtonFont, button_cl, text_cl, { 0, 0, 0, 0 }, Align_t::Center());
+    render_text_align(text_rect, text, ButtonFont, button_cl, text_cl, { 0, 0, 0, 0 }, Align_t::Center());
 }
 
 bool IRadioButton::IsEnabled(size_t index) const {
