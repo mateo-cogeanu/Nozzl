@@ -65,37 +65,38 @@ static constexpr Color nozzl_splash_surface = Color::from_raw(0x0B0B0B);
 static constexpr Color nozzl_splash_text = COLOR_WHITE;
 static constexpr Color nozzl_splash_metal = Color::from_raw(0xD8D8D8);
 static constexpr Color nozzl_splash_metal_shadow = Color::from_raw(0x777777);
+static constexpr Color nozzl_splash_metal_dark = Color::from_raw(0x2A2A2A);
 
 static void draw_nozzl_splash_identity() {
     display::fill_rect(Rect16(0, GuiDefaults::HeaderHeight, GuiDefaults::ScreenWidth, SPLASHSCREEN_PROGRESSBAR_Y - GuiDefaults::HeaderHeight - 8), nozzl_splash_surface);
 
     constexpr int16_t center_x = GuiDefaults::ScreenWidth / 2;
-    display::fill_rect(Rect16(center_x - 4, 32, 8, 18), COLOR_ORANGE);
-    display::draw_rounded_rect(Rect16(center_x - 34, 48, 68, 27), nozzl_splash_surface, nozzl_splash_metal, 7, MIC_ALL_CORNERS);
-    display::fill_rect(Rect16(center_x - 25, 56, 50, 9), nozzl_splash_metal_shadow);
-    display::fill_rect(Rect16(center_x - 31, 68, 62, 8), nozzl_splash_metal);
+    display::fill_rect(Rect16(center_x - 4, 34, 8, 18), COLOR_ORANGE);
+    display::draw_rounded_rect(Rect16(center_x - 32, 52, 64, 24), nozzl_splash_surface, nozzl_splash_metal, 6, MIC_ALL_CORNERS);
+    display::fill_rect(Rect16(center_x - 22, 61, 44, 6), nozzl_splash_metal_dark);
+    display::fill_rect(Rect16(center_x - 24, 75, 48, 5), nozzl_splash_metal_shadow);
 
-    for (uint8_t row = 0; row < 27; ++row) {
-        const uint8_t inset = row / 2;
-        const uint16_t width = 56 - 2 * inset;
-        display::fill_rect(Rect16(center_x - width / 2, 76 + row, width, 1), nozzl_splash_metal);
+    for (uint8_t row = 0; row < 28; ++row) {
+        const uint8_t inset = 7 + row / 2;
+        const uint16_t width = 64 - 2 * inset;
+        display::fill_rect(Rect16(center_x - width / 2, 80 + row, width, 1), nozzl_splash_metal);
     }
-    display::fill_rect(Rect16(center_x - 7, 101, 14, 5), nozzl_splash_metal_shadow);
-    display::fill_rect(Rect16(center_x - 4, 106, 8, 6), nozzl_splash_metal);
+    display::fill_rect(Rect16(center_x - 8, 107, 16, 5), nozzl_splash_metal_shadow);
+    display::fill_rect(Rect16(center_x - 4, 112, 8, 5), nozzl_splash_metal);
 
-    constexpr uint8_t filament_width = 4;
+    constexpr uint8_t filament_width = 3;
     const auto filament_h = [](int16_t x, int16_t y, uint16_t width) {
         display::fill_rect(Rect16(x, y, width, filament_width), COLOR_ORANGE);
     };
     const auto filament_v = [](int16_t x, int16_t y, uint16_t height) {
         display::fill_rect(Rect16(x, y, filament_width, height), COLOR_ORANGE);
     };
-    filament_h(center_x - 44, 130, 88);
-    filament_v(center_x + 40, 118, 16);
-    filament_h(center_x - 34, 118, 78);
-    filament_v(center_x - 34, 118, 10);
-    filament_h(center_x - 34, 124, 36);
-    filament_v(center_x - filament_width / 2, 110, 18);
+    filament_v(center_x - 1, 116, 14);
+    filament_h(center_x - 1, 127, 33);
+    filament_v(center_x + 29, 120, 10);
+    filament_h(center_x - 29, 120, 61);
+    filament_v(center_x - 29, 120, 8);
+    filament_h(center_x - 29, 125, 31);
 
     render_text_align(Rect16(0, 140, GuiDefaults::ScreenWidth, height(Font::big)),
         string_view_utf8::MakeCPUFLASH("UNORIGINAL PRUSA"), Font::big, nozzl_splash_surface, nozzl_splash_text, {}, Align_t::Center());
