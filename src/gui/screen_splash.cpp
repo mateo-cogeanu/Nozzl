@@ -59,6 +59,39 @@
     #define SPLASHSCREEN_PROGRESSBAR_W 280
     #define SPLASHSCREEN_PROGRESSBAR_H 12
     #define SPLASHSCREEN_VERSION_Y     185
+
+static constexpr Color nozzl_splash_surface = Color::from_raw(0x0B0B0B);
+static constexpr Color nozzl_splash_card = Color::from_raw(0x151515);
+static constexpr Color nozzl_splash_text = COLOR_WHITE;
+static constexpr Color nozzl_splash_muted = Color::from_raw(0xA8A8A8);
+
+static void draw_nozzl_splash_identity() {
+    display::fill_rect(Rect16(0, GuiDefaults::HeaderHeight, GuiDefaults::ScreenWidth, SPLASHSCREEN_PROGRESSBAR_Y - GuiDefaults::HeaderHeight - 8), nozzl_splash_surface);
+
+    constexpr Rect16 logo_rect(208, 39, 64, 64);
+    display::draw_rounded_rect(logo_rect, nozzl_splash_surface, COLOR_ORANGE, 14, MIC_ALL_CORNERS);
+
+    const Rect16 logo_inner(
+        logo_rect.Left() + 4,
+        logo_rect.Top() + 4,
+        logo_rect.Width() - 8,
+        logo_rect.Height() - 8);
+    display::draw_rounded_rect(logo_inner, COLOR_ORANGE, nozzl_splash_card, 10, MIC_ALL_CORNERS);
+
+    display::fill_rect(Rect16(logo_inner.Left() + 12, logo_inner.Top() + 11, 7, logo_inner.Height() - 22), COLOR_ORANGE);
+    display::fill_rect(Rect16(logo_inner.Right() - 19, logo_inner.Top() + 11, 7, logo_inner.Height() - 22), COLOR_ORANGE);
+    for (uint8_t i = 0; i < 5; ++i) {
+        display::draw_line(
+            point_ui16_t { uint16_t(logo_inner.Left() + 20 + i), uint16_t(logo_inner.Top() + 12) },
+            point_ui16_t { uint16_t(logo_inner.Right() - 20 + i), uint16_t(logo_inner.Bottom() - 13) },
+            COLOR_ORANGE);
+    }
+
+    display::draw_text(Rect16(0, 110, GuiDefaults::ScreenWidth, height(Font::big)),
+        string_view_utf8::MakeCPUFLASH("UNORIGINAL NOZZL"), Font::big, nozzl_splash_surface, nozzl_splash_text);
+    display::draw_text(Rect16(0, 135, GuiDefaults::ScreenWidth, height(Font::special)),
+        string_view_utf8::MakeCPUFLASH("custom MK4S firmware"), Font::special, nozzl_splash_surface, nozzl_splash_muted);
+}
 #endif
 
 screen_splash_data_t::screen_splash_data_t()
@@ -234,6 +267,9 @@ void screen_splash_data_t::draw() {
     progress.Invalidate();
     text_progress.Invalidate();
     screen_t::draw(); // We want to draw over bootloader's screen without flickering/redrawing
+#if HAS_LARGE_DISPLAY()
+    draw_nozzl_splash_identity();
+#endif
 #ifdef _DEBUG
     #if HAS_MINI_DISPLAY()
     display::draw_text(Rect16(180, 91, 60, 16), string_view_utf8::MakeCPUFLASH("DEBUG"), Font::small, COLOR_BLACK, COLOR_RED);

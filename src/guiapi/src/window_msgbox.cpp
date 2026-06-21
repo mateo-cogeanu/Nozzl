@@ -7,6 +7,10 @@
 #include <guiconfig/GuiDefaults.hpp>
 #include "img_resources.hpp"
 
+static constexpr Color nozzl_dialog_back = Color::from_raw(0x0B0B0B);
+static constexpr Color nozzl_dialog_text = Color::from_raw(0xE8E8E8);
+static constexpr Color nozzl_dialog_title = COLOR_WHITE;
+
 /*****************************************************************************/
 // Icon + Text layout adjusting tool
 
@@ -29,6 +33,10 @@ MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, 
     static_assert(sizeof(RadioButton) <= std::tuple_size_v<RadioMemSpace>);
     pButtons = make_static_unique_ptr<RadioButton>(&radio_mem_space, this, GuiDefaults::GetButtonRect(rect), resp, labels);
     pButtons->SetBtnIndex(def_btn);
+    SetBackColor(nozzl_dialog_back);
+    text.SetBackColor(nozzl_dialog_back);
+    text.SetTextColor(nozzl_dialog_text);
+    pButtons->SetBackColor(COLOR_ORANGE);
     CaptureNormalWindow(*pButtons);
 }
 
@@ -117,6 +125,8 @@ MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_b
     , title(this, GetRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
     title.set_font(TitleFont);
     title.SetRect(getTitleRect());
+    title.SetBackColor(nozzl_dialog_back);
+    title.SetTextColor(nozzl_dialog_title);
     icon.SetRect(getIconRect());
     text.SetRect(getTextRect());
     if (dense == dense_t::yes) {
@@ -174,6 +184,7 @@ MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses &resp, size_t def
     const string_view_utf8 &txt, is_multiline multiline, const img::Resource *icon_res, is_closed_on_click_t close)
     : MsgBoxBase(rect, resp, def_btn, labels, txt, multiline, close)
     , icon(this, icon_res, { int16_t(rect.Left()), int16_t(rect.Top()) }, GuiDefaults::Padding) {
+    icon.SetBackColor(nozzl_dialog_back);
     text.SetRect(getTextRect()); // reinit text, icon and title must be initialized
     if (GuiDefaults::EnableDialogBigLayout) {
         text.SetAlignment(Align_t::LeftCenter());
@@ -233,16 +244,17 @@ MsgBoxIconnedError::MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, 
     text.SetAlignment(Align_t::LeftCenter());
     icon.SetRect(getIconRect());
     AdjustLayout(text, icon);
-    SetBackColor(COLOR_ORANGE);
-    text.SetBackColor(COLOR_ORANGE);
-    icon.SetBackColor(COLOR_ORANGE);
+    SetBackColor(nozzl_dialog_back);
+    text.SetBackColor(nozzl_dialog_back);
+    text.SetTextColor(nozzl_dialog_title);
+    icon.SetBackColor(nozzl_dialog_back);
 
     if (!pButtons) { // pButtons can never be null
         assert("unassigned msgbox");
         return;
     }
 
-    pButtons->SetBackColor(COLOR_WHITE);
+    pButtons->SetBackColor(COLOR_ORANGE);
 }
 
 /*****************************************************************************/
