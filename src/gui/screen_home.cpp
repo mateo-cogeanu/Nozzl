@@ -130,7 +130,7 @@ constexpr size_t cardTopOffset = 42;
 constexpr size_t cardXSpacing = 8;
 constexpr size_t cardYSpacing = 4;
 constexpr size_t cardBorderWidth = 3;
-constexpr uint8_t cardCornerRadius = 11;
+constexpr uint8_t cardCornerRadius = 9;
 #endif
 
 constexpr size_t buttonTextSpacing = buttonIconSize + buttonsXSpacing - buttonTextWidth;
@@ -203,8 +203,7 @@ void HomeTileBackground::set_colors(Color border, Color surface) {
 
 void HomeTileBackground::unconditionalDraw() {
     const Rect16 rect = GetRect();
-    const Color parent_back_color = GetParent() ? GetParent()->GetBackColor() : surface_color;
-    display::fill_rect(rect, parent_back_color);
+    display::fill_rect(rect, COLOR_BLACK);
 
     if (border_color == surface_color) {
         fillRoundedRectExact(rect, surface_color, cardCornerRadius);
