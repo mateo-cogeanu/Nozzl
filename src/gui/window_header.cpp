@@ -20,7 +20,11 @@
 #endif
 
 namespace {
+#if HAS_LARGE_DISPLAY()
+constexpr uint16_t inter_item_padding { 8 };
+#else
 constexpr uint16_t inter_item_padding { 4 };
+#endif
 // icon widths
 constexpr Rect16::Width_t base_w { 16 };
 

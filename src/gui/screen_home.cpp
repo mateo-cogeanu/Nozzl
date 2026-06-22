@@ -188,7 +188,42 @@ void HomeTileBackground::unconditionalDraw() {
         return;
     }
 
-    display::draw_rounded_rect(rect, parent_back_color, border_color, cardCornerRadius, MIC_ALL_CORNERS);
+    display::draw_rounded_rect(rect, parent_back_color, surface_color, cardCornerRadius, MIC_ALL_CORNERS);
+
+    const auto draw_selected_outline = [](Rect16 outline_rect) {
+        const auto line_h = [](int16_t x, int16_t y, uint16_t width) {
+            display::fill_rect(Rect16(x, y, width, 1), tileSelectedBorderColor);
+        };
+        const auto line_v = [](int16_t x, int16_t y, uint16_t height) {
+            display::fill_rect(Rect16(x, y, 1, height), tileSelectedBorderColor);
+        };
+        const auto line_diag = [](point_ui16_t start, point_ui16_t end) {
+            display::draw_line(start, end, tileSelectedBorderColor);
+        };
+
+        for (uint8_t inset = 0; inset < cardBorderWidth; ++inset) {
+            const int16_t left = outline_rect.Left() + inset;
+            const int16_t right = outline_rect.Right() - inset;
+            const int16_t top = outline_rect.Top() + inset;
+            const int16_t bottom = outline_rect.Bottom() - inset;
+            const uint8_t radius = cardCornerRadius - inset;
+
+            line_h(left + radius, top, right - left - 2 * radius + 1);
+            line_h(left + radius, bottom, right - left - 2 * radius + 1);
+            line_v(left, top + radius, bottom - top - 2 * radius + 1);
+            line_v(right, top + radius, bottom - top - 2 * radius + 1);
+
+            line_diag(point_ui16_t { uint16_t(left + radius), uint16_t(top) }, point_ui16_t { uint16_t(left), uint16_t(top + radius) });
+            line_diag(point_ui16_t { uint16_t(right - radius), uint16_t(top) }, point_ui16_t { uint16_t(right), uint16_t(top + radius) });
+            line_diag(point_ui16_t { uint16_t(left), uint16_t(bottom - radius) }, point_ui16_t { uint16_t(left + radius), uint16_t(bottom) });
+            line_diag(point_ui16_t { uint16_t(right), uint16_t(bottom - radius) }, point_ui16_t { uint16_t(right - radius), uint16_t(bottom) });
+        }
+    };
+
+    if (border_color == tileSelectedBorderColor) {
+        draw_selected_outline(rect);
+        return;
+    }
 
     const Rect16 innerRect(
         rect.Left() + cardBorderWidth,
@@ -298,25 +333,8 @@ screen_home_data_t::screen_home_data_t()
     window_frame_t::ClrMenuTimeoutClose();
     window_frame_t::ClrOnSerialClose(); // don't close on Serial print
 
-#if !HAS_MINI_DISPLAY()
-    header.SetIcon(&img::home_shape_16x16);
-#endif
-
-    {
-        StringBuilder sb(header_text);
-        sb.append_string("PRUSA ");
-        sb.append_string(PrinterModelInfo::current().id_str);
-        sb.append_string(" ");
-        sb.append_string(version::project_version);
-        sb.append_string(version::project_version_suffix_short);
-#if DEVELOPER_MODE()
-        sb.append_string(" DEV");
-#endif
-#ifdef _DEBUG
-        sb.append_string(" DBG");
-#endif
-        header.SetText(string_view_utf8::MakeRAM(header_text.data()));
-    }
+    header.SetIcon(nullptr);
+    header.SetText(string_view_utf8::MakeNULLSTR());
 
     for (uint8_t row = 0; row < 2; row++) {
         for (uint8_t col = 0; col < 3; col++) {
