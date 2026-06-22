@@ -378,10 +378,9 @@ The launcher now uses a dedicated Python wrapper that provisions and attaches ev
 - `src/gui/footer/ifooter_item.cpp` — propagates the shared surface through footer items, icons, and text.
 - `src/guiapi/src/display_ex.cpp` — adds a subtle renderer-level text weight pass so existing fonts read slightly thicker without changing metrics or layout.
 - `src/gui/screen_splash.cpp` — changes the MK4/MK4S setup splash greeting from Original Prusa branding to UNORIGINAL NOZZL.
-- `src/gui/screen_splash.cpp` — simplifies the Nozzl boot identity to centered UNORIGINAL PRUSA text with ORIGINAL NOZZL underneath and NOZZL highlighted in orange.
+- `src/gui/screen_splash.cpp` — adds a simplified Nozzl boot identity with a smaller white-outline nozzle, orange filament, and a more prominent centered UNORIGINAL PRUSA title.
 - `cmake/ProjectVersion.cmake` — changes local build version branding from `.LOCAL` to `.NOZZL`, including the short version shown in the header.
-- `src/gui/screen_home.cpp` — removes the home-screen PRUSA MK4/MK4S firmware title from the top bar, keeps the right-side status icons, and uses the bold normal font for large-display home menu labels.
-- `src/gui/window_header.cpp` — slightly increases large-display top-bar status icon spacing.
+- `src/gui/screen_home.cpp` — uses the bold normal font for large-display home menu labels for better readability.
 - `src/gui/dialogs/i_radio_button.cpp` — keeps shared confirmation buttons on the selected-only orange outline treatment.
 - `src/guiapi/src/window_msgbox.cpp` — darkens standard/error dialog surfaces and keeps orange as an accent instead of filling the whole dialog body.
 - `src/common/sound.cpp` — makes only the button-confirmation tone shorter, lower, and quieter.

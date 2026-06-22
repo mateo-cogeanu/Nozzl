@@ -67,20 +67,39 @@ static constexpr Color nozzl_splash_text = COLOR_WHITE;
 static void draw_nozzl_splash_identity() {
     display::fill_rect(Rect16(0, GuiDefaults::HeaderHeight, GuiDefaults::ScreenWidth, SPLASHSCREEN_PROGRESSBAR_Y - GuiDefaults::HeaderHeight - 8), nozzl_splash_surface);
 
-    render_text_align(Rect16(0, 70, GuiDefaults::ScreenWidth, height(Font::big)),
-        string_view_utf8::MakeCPUFLASH("UNORIGINAL PRUSA"), Font::big, nozzl_splash_surface, nozzl_splash_text, {}, Align_t::Center());
+    constexpr int16_t center_x = GuiDefaults::ScreenWidth / 2;
+    constexpr int16_t top = 34;
+    constexpr uint8_t line = 3;
 
-    constexpr const char original_text[] = "ORIGINAL ";
-    constexpr const char nozzl_text[] = "NOZZL";
-    constexpr uint16_t original_width = width(Font::big) * (sizeof(original_text) - 1);
-    constexpr uint16_t nozzl_width = width(Font::big) * (sizeof(nozzl_text) - 1);
-    constexpr uint16_t line_width = original_width + nozzl_width;
-    constexpr int16_t line_left = (GuiDefaults::ScreenWidth - line_width) / 2;
-    constexpr int16_t line_top = 96;
-    display::draw_text(Rect16(line_left, line_top, original_width, height(Font::big)),
-        string_view_utf8::MakeCPUFLASH(original_text), Font::big, nozzl_splash_surface, nozzl_splash_text);
-    display::draw_text(Rect16(line_left + original_width, line_top, nozzl_width, height(Font::big)),
-        string_view_utf8::MakeCPUFLASH(nozzl_text), Font::big, nozzl_splash_surface, COLOR_ORANGE);
+    const auto white_h = [=](int16_t x, int16_t y, uint16_t width) {
+        display::fill_rect(Rect16(x, y, width, line), COLOR_WHITE);
+    };
+    const auto white_v = [=](int16_t x, int16_t y, uint16_t height) {
+        display::fill_rect(Rect16(x, y, line, height), COLOR_WHITE);
+    };
+    const auto white_line = [=](point_ui16_t start, point_ui16_t end) {
+        for (uint8_t offset = 0; offset < line; ++offset) {
+            display::draw_line(point_ui16_t { uint16_t(start.x + offset), start.y }, point_ui16_t { uint16_t(end.x + offset), end.y }, COLOR_WHITE);
+        }
+    };
+
+    white_h(center_x - 19, top, 38);
+    white_h(center_x - 19, top + 31, 38);
+    white_v(center_x - 19, top, 34);
+    white_v(center_x + 16, top, 34);
+    white_h(center_x - 19, top + 10, 38);
+    white_h(center_x - 19, top + 20, 38);
+
+    white_h(center_x - 27, top + 42, 54);
+    white_line(point_ui16_t { uint16_t(center_x - 27), uint16_t(top + 44) }, point_ui16_t { uint16_t(center_x - 6), uint16_t(top + 73) });
+    white_line(point_ui16_t { uint16_t(center_x + 24), uint16_t(top + 44) }, point_ui16_t { uint16_t(center_x + 4), uint16_t(top + 73) });
+    white_h(center_x - 6, top + 73, 12);
+
+    display::fill_rect(Rect16(center_x - 1, top + 77, 3, 8), COLOR_ORANGE);
+    display::fill_rect(Rect16(center_x - 44, top + 85, 88, 3), COLOR_ORANGE);
+
+    render_text_align(Rect16(0, 132, GuiDefaults::ScreenWidth, height(Font::big)),
+        string_view_utf8::MakeCPUFLASH("UNORIGINAL PRUSA"), Font::big, nozzl_splash_surface, nozzl_splash_text, {}, Align_t::Center());
 }
 #endif
 
