@@ -124,13 +124,13 @@ constexpr Color tileSelectedLabelColor = COLOR_WHITE;
 constexpr Color tileDisabledLabelColor = Color::from_raw(0x777777);
 
 constexpr size_t cardWidth = 142;
-constexpr size_t cardHeight = 121;
+constexpr size_t cardHeight = 120;
 constexpr size_t cardLeftOffset = 19;
 constexpr size_t cardTopOffset = 42;
 constexpr size_t cardXSpacing = 8;
 constexpr size_t cardYSpacing = 4;
 constexpr size_t cardBorderWidth = 3;
-constexpr uint8_t cardCornerRadius = 12;
+constexpr uint8_t cardCornerRadius = 9;
 #endif
 
 constexpr size_t buttonTextSpacing = buttonIconSize + buttonsXSpacing - buttonTextWidth;
@@ -188,47 +188,7 @@ void HomeTileBackground::unconditionalDraw() {
         return;
     }
 
-    display::draw_rounded_rect(rect, parent_back_color, surface_color, cardCornerRadius, MIC_ALL_CORNERS);
-
-    const auto draw_selected_outline = [](Rect16 outline_rect) {
-        const int16_t left = outline_rect.Left();
-        const int16_t right = outline_rect.Right();
-        const int16_t top = outline_rect.Top();
-        const int16_t bottom = outline_rect.Bottom();
-        constexpr int16_t radius = cardCornerRadius;
-        constexpr int16_t inner_radius = cardCornerRadius - cardBorderWidth;
-
-        display::fill_rect(Rect16(left + radius, top, right - left - 2 * radius + 1, cardBorderWidth), tileSelectedBorderColor);
-        display::fill_rect(Rect16(left + radius, bottom - cardBorderWidth + 1, right - left - 2 * radius + 1, cardBorderWidth), tileSelectedBorderColor);
-        display::fill_rect(Rect16(left, top + radius, cardBorderWidth, bottom - top - 2 * radius + 1), tileSelectedBorderColor);
-        display::fill_rect(Rect16(right - cardBorderWidth + 1, top + radius, cardBorderWidth, bottom - top - 2 * radius + 1), tileSelectedBorderColor);
-
-        const int16_t tl_center_x = left + radius;
-        const int16_t tr_center_x = right - radius;
-        const int16_t top_center_y = top + radius;
-        const int16_t bottom_center_y = bottom - radius;
-        const int16_t outer_limit = radius * radius;
-        const int16_t inner_limit = inner_radius * inner_radius;
-
-        for (int16_t dx = 0; dx <= radius; ++dx) {
-            for (int16_t dy = 0; dy <= radius; ++dy) {
-                const int16_t distance = dx * dx + dy * dy;
-                if (distance > outer_limit || distance < inner_limit) {
-                    continue;
-                }
-
-                display::set_pixel(point_ui16_t { uint16_t(tl_center_x - dx), uint16_t(top_center_y - dy) }, tileSelectedBorderColor);
-                display::set_pixel(point_ui16_t { uint16_t(tr_center_x + dx), uint16_t(top_center_y - dy) }, tileSelectedBorderColor);
-                display::set_pixel(point_ui16_t { uint16_t(tl_center_x - dx), uint16_t(bottom_center_y + dy) }, tileSelectedBorderColor);
-                display::set_pixel(point_ui16_t { uint16_t(tr_center_x + dx), uint16_t(bottom_center_y + dy) }, tileSelectedBorderColor);
-            }
-        }
-    };
-
-    if (border_color == tileSelectedBorderColor) {
-        draw_selected_outline(rect);
-        return;
-    }
+    display::draw_rounded_rect(rect, parent_back_color, border_color, cardCornerRadius, MIC_ALL_CORNERS);
 
     const Rect16 innerRect(
         rect.Left() + cardBorderWidth,
