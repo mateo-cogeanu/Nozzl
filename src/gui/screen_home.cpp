@@ -191,32 +191,37 @@ void HomeTileBackground::unconditionalDraw() {
     display::draw_rounded_rect(rect, parent_back_color, surface_color, cardCornerRadius, MIC_ALL_CORNERS);
 
     const auto draw_selected_outline = [](Rect16 outline_rect) {
-        const auto line_h = [](int16_t x, int16_t y, uint16_t width) {
-            display::fill_rect(Rect16(x, y, width, 1), tileSelectedBorderColor);
-        };
-        const auto line_v = [](int16_t x, int16_t y, uint16_t height) {
-            display::fill_rect(Rect16(x, y, 1, height), tileSelectedBorderColor);
-        };
-        const auto line_diag = [](point_ui16_t start, point_ui16_t end) {
-            display::draw_line(start, end, tileSelectedBorderColor);
-        };
+        const int16_t left = outline_rect.Left();
+        const int16_t right = outline_rect.Right();
+        const int16_t top = outline_rect.Top();
+        const int16_t bottom = outline_rect.Bottom();
+        constexpr int16_t radius = cardCornerRadius;
+        constexpr int16_t inner_radius = cardCornerRadius - cardBorderWidth;
 
-        for (uint8_t inset = 0; inset < cardBorderWidth; ++inset) {
-            const int16_t left = outline_rect.Left() + inset;
-            const int16_t right = outline_rect.Right() - inset;
-            const int16_t top = outline_rect.Top() + inset;
-            const int16_t bottom = outline_rect.Bottom() - inset;
-            const uint8_t radius = cardCornerRadius - inset;
+        display::fill_rect(Rect16(left + radius, top, right - left - 2 * radius + 1, cardBorderWidth), tileSelectedBorderColor);
+        display::fill_rect(Rect16(left + radius, bottom - cardBorderWidth + 1, right - left - 2 * radius + 1, cardBorderWidth), tileSelectedBorderColor);
+        display::fill_rect(Rect16(left, top + radius, cardBorderWidth, bottom - top - 2 * radius + 1), tileSelectedBorderColor);
+        display::fill_rect(Rect16(right - cardBorderWidth + 1, top + radius, cardBorderWidth, bottom - top - 2 * radius + 1), tileSelectedBorderColor);
 
-            line_h(left + radius, top, right - left - 2 * radius + 1);
-            line_h(left + radius, bottom, right - left - 2 * radius + 1);
-            line_v(left, top + radius, bottom - top - 2 * radius + 1);
-            line_v(right, top + radius, bottom - top - 2 * radius + 1);
+        const int16_t tl_center_x = left + radius;
+        const int16_t tr_center_x = right - radius;
+        const int16_t top_center_y = top + radius;
+        const int16_t bottom_center_y = bottom - radius;
+        const int16_t outer_limit = radius * radius;
+        const int16_t inner_limit = inner_radius * inner_radius;
 
-            line_diag(point_ui16_t { uint16_t(left + radius), uint16_t(top) }, point_ui16_t { uint16_t(left), uint16_t(top + radius) });
-            line_diag(point_ui16_t { uint16_t(right - radius), uint16_t(top) }, point_ui16_t { uint16_t(right), uint16_t(top + radius) });
-            line_diag(point_ui16_t { uint16_t(left), uint16_t(bottom - radius) }, point_ui16_t { uint16_t(left + radius), uint16_t(bottom) });
-            line_diag(point_ui16_t { uint16_t(right), uint16_t(bottom - radius) }, point_ui16_t { uint16_t(right - radius), uint16_t(bottom) });
+        for (int16_t dx = 0; dx <= radius; ++dx) {
+            for (int16_t dy = 0; dy <= radius; ++dy) {
+                const int16_t distance = dx * dx + dy * dy;
+                if (distance > outer_limit || distance < inner_limit) {
+                    continue;
+                }
+
+                display::set_pixel(point_ui16_t { uint16_t(tl_center_x - dx), uint16_t(top_center_y - dy) }, tileSelectedBorderColor);
+                display::set_pixel(point_ui16_t { uint16_t(tr_center_x + dx), uint16_t(top_center_y - dy) }, tileSelectedBorderColor);
+                display::set_pixel(point_ui16_t { uint16_t(tl_center_x - dx), uint16_t(bottom_center_y + dy) }, tileSelectedBorderColor);
+                display::set_pixel(point_ui16_t { uint16_t(tr_center_x + dx), uint16_t(bottom_center_y + dy) }, tileSelectedBorderColor);
+            }
         }
     };
 
