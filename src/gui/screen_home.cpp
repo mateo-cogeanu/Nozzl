@@ -112,7 +112,7 @@ constexpr size_t buttonTextHeight = 22;
 constexpr size_t buttonIconVerticalSpacing = 29;
 
 constexpr size_t buttonTopOffset = 47;
-constexpr size_t buttonTextTopOffset = 139;
+constexpr size_t buttonTextTopOffset = 136;
 
 constexpr Color tileBorderColor = Color::from_raw(0x151515);
 constexpr Color tileSelectedBorderColor = COLOR_ORANGE;
