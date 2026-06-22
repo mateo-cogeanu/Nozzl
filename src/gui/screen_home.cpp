@@ -130,7 +130,7 @@ constexpr size_t cardTopOffset = 42;
 constexpr size_t cardXSpacing = 8;
 constexpr size_t cardYSpacing = 4;
 constexpr size_t cardBorderWidth = 3;
-constexpr uint8_t cardCornerRadius = 9;
+constexpr uint8_t cardCornerRadius = 11;
 #endif
 
 constexpr size_t buttonTextSpacing = buttonIconSize + buttonsXSpacing - buttonTextWidth;
@@ -166,6 +166,28 @@ static constexpr Rect16 cardRect(size_t col, size_t row) {
         cardHeight);
 }
 
+static constexpr uint8_t roundedRectInset(uint8_t radius, uint16_t row, uint16_t height) {
+    if (row >= radius && row < height - radius) {
+        return 0;
+    }
+
+    const int16_t dy = row < radius
+        ? radius - 1 - row
+        : row - (height - radius);
+    int16_t x = radius;
+    while (x > 0 && x * x + dy * dy > radius * radius) {
+        --x;
+    }
+    return radius - x;
+}
+
+static void fillRoundedRectExact(Rect16 rect, Color color, uint8_t radius) {
+    for (uint16_t row = 0; row < rect.Height(); ++row) {
+        const uint8_t inset = roundedRectInset(radius, row, rect.Height());
+        display::fill_rect(Rect16(rect.Left() + inset, rect.Top() + row, rect.Width() - 2 * inset, 1), color);
+    }
+}
+
 #endif
 
 #if HAS_LARGE_DISPLAY()
@@ -182,13 +204,14 @@ void HomeTileBackground::set_colors(Color border, Color surface) {
 void HomeTileBackground::unconditionalDraw() {
     const Rect16 rect = GetRect();
     const Color parent_back_color = GetParent() ? GetParent()->GetBackColor() : surface_color;
+    display::fill_rect(rect, parent_back_color);
 
     if (border_color == surface_color) {
-        display::draw_rounded_rect(rect, parent_back_color, surface_color, cardCornerRadius, MIC_ALL_CORNERS);
+        fillRoundedRectExact(rect, surface_color, cardCornerRadius);
         return;
     }
 
-    display::draw_rounded_rect(rect, parent_back_color, border_color, cardCornerRadius, MIC_ALL_CORNERS);
+    fillRoundedRectExact(rect, border_color, cardCornerRadius);
 
     const Rect16 innerRect(
         rect.Left() + cardBorderWidth,
@@ -196,7 +219,7 @@ void HomeTileBackground::unconditionalDraw() {
         rect.Width() - 2 * cardBorderWidth,
         rect.Height() - 2 * cardBorderWidth);
     constexpr uint8_t innerRadius = cardCornerRadius > cardBorderWidth ? cardCornerRadius - cardBorderWidth : 1;
-    display::draw_rounded_rect(innerRect, border_color, surface_color, innerRadius, MIC_ALL_CORNERS);
+    fillRoundedRectExact(innerRect, surface_color, innerRadius);
 }
 #endif
 
