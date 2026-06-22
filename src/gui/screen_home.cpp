@@ -131,6 +131,12 @@ constexpr size_t cardXSpacing = 8;
 constexpr size_t cardYSpacing = 4;
 constexpr size_t cardBorderWidth = 3;
 constexpr uint8_t cardCornerRadius = 9;
+constexpr uint16_t tileFocusAnimationMs = 80;
+
+static uint32_t focus_animation_started = 0;
+static uint8_t animated_focus_index = 0xff;
+static std::array<uint8_t, screen_home_data_t::button_count> focus_highlight {};
+static std::array<uint8_t, screen_home_data_t::button_count> focus_highlight_from {};
 #endif
 
 constexpr size_t buttonTextSpacing = buttonIconSize + buttonsXSpacing - buttonTextWidth;
@@ -188,6 +194,36 @@ static void fillRoundedRectExact(Rect16 rect, Color color, uint8_t radius) {
     }
 }
 
+static void drawRoundedBorderExact(Rect16 rect, Color color, uint8_t radius, uint8_t width) {
+    const Rect16 inner(rect.Left() + width, rect.Top() + width,
+        rect.Width() - 2 * width, rect.Height() - 2 * width);
+    const uint8_t inner_radius = radius > width ? radius - width : 1;
+
+    for (uint8_t y = 0; y < radius; ++y) {
+        for (uint8_t mirror = 0; mirror < 2; ++mirror) {
+            const uint16_t row = mirror ? rect.Height() - 1 - y : y;
+            const uint8_t outer_inset = roundedRectInset(radius, row, rect.Height());
+            const int16_t outer_left = rect.Left() + outer_inset;
+            const int16_t outer_right = rect.Right() - outer_inset;
+
+            if (row < width || row >= rect.Height() - width) {
+                display::fill_rect(Rect16(outer_left, rect.Top() + row, outer_right - outer_left + 1, 1), color);
+                continue;
+            }
+
+            const uint16_t inner_row = row - width;
+            const uint8_t inner_inset = roundedRectInset(inner_radius, inner_row, inner.Height());
+            const int16_t inner_left = inner.Left() + inner_inset;
+            const int16_t inner_right = inner.Right() - inner_inset;
+            display::fill_rect(Rect16(outer_left, rect.Top() + row, inner_left - outer_left, 1), color);
+            display::fill_rect(Rect16(inner_right + 1, rect.Top() + row, outer_right - inner_right, 1), color);
+        }
+    }
+
+    display::fill_rect(Rect16(rect.Left(), rect.Top() + radius, width, rect.Height() - 2 * radius), color);
+    display::fill_rect(Rect16(rect.Right() - width + 1, rect.Top() + radius, width, rect.Height() - 2 * radius), color);
+}
+
 #endif
 
 #if HAS_LARGE_DISPLAY()
@@ -219,6 +255,27 @@ void HomeTileBackground::unconditionalDraw() {
         rect.Height() - 2 * cardBorderWidth);
     constexpr uint8_t innerRadius = cardCornerRadius > cardBorderWidth ? cardCornerRadius - cardBorderWidth : 1;
     fillRoundedRectExact(innerRect, surface_color, innerRadius);
+}
+
+void HomeFocusSlider::set_base_color(size_t index, Color color) {
+    if (base_colors[index] != color) {
+        base_colors[index] = color;
+        Invalidate();
+    }
+}
+
+void HomeFocusSlider::set_highlights(const std::array<uint8_t, 6> &values) {
+    if (highlights != values) {
+        highlights = values;
+        Invalidate();
+    }
+}
+
+void HomeFocusSlider::unconditionalDraw() {
+    for (uint8_t i = 0; i < 6; ++i) {
+        const Color color = Color::mix(base_colors[i], tileSelectedBorderColor, highlights[i]);
+        drawRoundedBorderExact(cardRect(i % 3, i / 3), color, cardCornerRadius, cardBorderWidth);
+    }
 }
 #endif
 
@@ -313,7 +370,13 @@ screen_home_data_t::screen_home_data_t()
         { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no }
-    } {
+    }
+#if HAS_LARGE_DISPLAY()
+    , focus_slider(this, Rect16(cardLeftOffset, cardTopOffset,
+                           3 * cardWidth + 2 * cardXSpacing,
+                           2 * cardHeight + cardYSpacing))
+#endif
+    {
     // clang-format on
 
     EnableLongHoldScreenAction();
@@ -342,6 +405,10 @@ screen_home_data_t::screen_home_data_t()
             w_labels[i].SetText(_(labels[i]));
         }
     }
+
+#if HAS_LARGE_DISPLAY()
+    focus_slider.Disable();
+#endif
 
     filamentBtnSetState();
 
@@ -411,17 +478,62 @@ void screen_home_data_t::refreshTileStyle() {
     for (size_t i = 0; i < button_count; ++i) {
         const bool selected = w_buttons[i].IsFocused() && w_buttons[i].IsEnabled();
         const bool disabled = !w_buttons[i].IsEnabled() || w_buttons[i].IsShadowed();
-        const Color border = disabled ? tileDisabledBorderColor : selected ? tileSelectedBorderColor
-                                                                           : tileBorderColor;
+        const Color border = disabled ? tileDisabledBorderColor : tileBorderColor;
         const Color surface = disabled ? tileDisabledSurfaceColor : tileSurfaceColor;
         const Color label = disabled ? tileDisabledLabelColor : selected ? tileSelectedLabelColor
                                                                          : tileLabelColor;
 
         w_cards[i].set_colors(border, surface);
+        focus_slider.set_base_color(i, border);
         w_buttons[i].SetBackColor(surface);
         w_labels[i].SetBackColor(surface);
         w_labels[i].SetTextColor(label);
     }
+#endif
+}
+
+void screen_home_data_t::updateFocusSlider() {
+#if HAS_LARGE_DISPLAY()
+    uint8_t focused_index = 0xff;
+    for (uint8_t i = 0; i < button_count; ++i) {
+        if (w_buttons[i].IsFocused() && w_buttons[i].IsEnabled()) {
+            focused_index = i;
+            break;
+        }
+    }
+
+    if (focused_index == 0xff) {
+        focus_highlight.fill(0);
+        focus_slider.set_highlights(focus_highlight);
+        animated_focus_index = focused_index;
+        return;
+    }
+
+    const uint32_t now = gui::GetTick();
+    if (focused_index != animated_focus_index) {
+        const uint8_t previous_focus = animated_focus_index;
+        focus_highlight_from = focus_highlight;
+        focus_animation_started = now;
+        animated_focus_index = focused_index;
+
+        // Button invalidation overlaps the label rectangle in this compact layout.
+        // Redraw both affected labels after the focus image has been painted.
+        if (previous_focus < button_count) {
+            w_labels[previous_focus].Invalidate();
+        }
+        w_labels[focused_index].Invalidate();
+    }
+
+    const uint32_t elapsed = now - focus_animation_started;
+    const uint32_t t = std::min<uint32_t>(elapsed * 256 / tileFocusAnimationMs, 256);
+    const uint32_t eased = (t * t * (768 - 2 * t)) >> 16;
+    for (uint8_t i = 0; i < button_count; ++i) {
+        const int16_t target = i == focused_index ? 255 : 0;
+        const int16_t start = focus_highlight_from[i];
+        focus_highlight[i] = start + (target - start) * eased / 256;
+    }
+    focus_highlight[focused_index] = std::max<uint8_t>(focus_highlight[focused_index], 64);
+    focus_slider.set_highlights(focus_highlight);
 #endif
 }
 
@@ -585,6 +697,7 @@ void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *
     }
 
     if (event == GUI_event_t::LOOP) {
+        updateFocusSlider();
         filamentBtnSetState();
 
 #if ENABLED(POWER_PANIC)
@@ -628,6 +741,7 @@ void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *
 #endif
 
     screen_t::windowEvent(sender, event, param);
+    updateFocusSlider();
     refreshTileStyle();
 
 #if HAS_NFC()

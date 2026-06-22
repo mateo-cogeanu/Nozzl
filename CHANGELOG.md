@@ -4,6 +4,13 @@ This file records the local MK4S interface customization and its development env
 
 ## Unreleased — MK4S dashboard polish
 
+### Focus transition refinement
+
+- Added an 80 ms eased transition between home-screen selections while retaining the complete rounded orange outline.
+- Starts the transition in the same rotary-knob event, removing the extra GUI-loop delay.
+- Restricts animated redraws to border pixels so icons and tile surfaces remain stable.
+- Redraws the previous and newly focused labels after overlapping button invalidation, preventing clipped glyph tops during focus changes.
+
 ### Summary
 
 The MK4/MK4S large-display home and active-print screens now use a cleaner card-based interface inspired by contemporary printer interfaces: dark neutral surfaces, a Prusa-orange outline only on the selected option, larger transparent-background action icons, and no extra instructional hero copy. Bottom dialog actions now follow the same selected-outline rule instead of filling the selected button orange. The change preserves the existing Prusa navigation model, action order, actions, and rotary/touch interaction behavior.

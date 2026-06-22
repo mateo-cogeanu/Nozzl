@@ -31,6 +31,19 @@ public:
 protected:
     virtual void unconditionalDraw() override;
 };
+
+class HomeFocusSlider final : public window_t {
+    std::array<Color, 6> base_colors {};
+    std::array<uint8_t, 6> highlights {};
+
+public:
+    using window_t::window_t;
+    void set_base_color(size_t index, Color color);
+    void set_highlights(const std::array<uint8_t, 6> &values);
+
+protected:
+    virtual void unconditionalDraw() override;
+};
 #endif
 
 class screen_home_data_t : public screen_t {
@@ -65,6 +78,9 @@ private:
 #endif
     WindowMultiIconButton w_buttons[button_count];
     window_text_t w_labels[button_count];
+#if HAS_LARGE_DISPLAY()
+    HomeFocusSlider focus_slider;
+#endif
 
 #if HAS_NFC()
     std::optional<nfc::SharedEnabler> nfc_enable { std::in_place };
@@ -87,6 +103,7 @@ private:
     void printBtnDis();
     void filamentBtnSetState();
     void refreshTileStyle();
+    void updateFocusSlider();
 
     void on_enter();
     void handle_crash_dump();
